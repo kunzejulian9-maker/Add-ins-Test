@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DoorLabs</title>
+  <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: "Segoe UI", system-ui, -apple-system, Arial, sans-serif; font-size: 14px; color: #1b1b1b; background: #f6f8fa; }
+    header { background: #111; color: #fff; padding: 14px 16px; display: flex; align-items: center; gap: 10px; }
+    header .logo { width: 28px; height: 28px; border-radius: 6px; background: #1E6EDC; position: relative; flex: none; }
+    header .logo:after { content: ""; position: absolute; left: 7px; right: 7px; top: 12px; height: 4px; background: #fff; }
+    header h1 { font-size: 16px; margin: 0; font-weight: 600; letter-spacing: .3px; }
+    header small { display: block; font-size: 11px; opacity: .7; font-weight: 400; }
+    main { padding: 14px 16px 24px; }
+    .demo { background: #fff4ce; border: 1px solid #f0d77a; padding: 8px 10px; border-radius: 6px; font-size: 12px; margin-bottom: 12px; }
+    .card { background: #fff; border: 1px solid #e3e6ea; border-radius: 8px; padding: 12px; margin-bottom: 12px; }
+    label.title { display: block; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .4px; color: #555; margin-bottom: 8px; }
+    .switch { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .switch input { width: 40px; height: 22px; }
+    input[type=text] { width: 100%; padding: 8px 10px; border: 1px solid #c8ccd1; border-radius: 6px; font-size: 14px; font-family: inherit; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .grid button { padding: 9px 6px; border: 1px solid #c8ccd1; background: #fff; border-radius: 6px; cursor: pointer; font-size: 13px; font-family: inherit; display: flex; align-items: center; gap: 6px; justify-content: flex-start; }
+    .grid button .dot { width: 12px; height: 12px; border-radius: 50%; border: 1px solid rgba(0,0,0,.25); flex: none; }
+    .grid button.active { border-color: #111; box-shadow: 0 0 0 1px #111 inset; font-weight: 600; }
+    .swatches { display: flex; gap: 8px; flex-wrap: wrap; }
+    .swatches button { width: 34px; height: 34px; border-radius: 50%; border: 2px solid rgba(0,0,0,.15); cursor: pointer; }
+    .swatches button.active { outline: 3px solid #111; outline-offset: 2px; }
+    .hint { font-size: 12px; color: #666; margin-top: 6px; }
+    .preview-wrap { display: flex; justify-content: center; padding: 6px 0 2px; }
+    .sign { width: 220px; height: 140px; border-radius: 10px; background: #111; padding: 9px; box-shadow: 0 4px 14px rgba(0,0,0,.25); }
+    .screen { width: 100%; height: 100%; border-radius: 3px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 8px; }
+    .screen .st { font-size: 20px; font-weight: 700; line-height: 1.15; }
+    .screen .dev { font-size: 11px; opacity: .8; margin-top: 6px; }
+    .code { font-family: Consolas, monospace; font-size: 12px; background: #f1f3f5; border-radius: 4px; padding: 6px 8px; word-break: break-word; margin-top: 8px; }
+    .actions { display: flex; gap: 8px; }
+    .actions button { flex: 1; padding: 10px; border-radius: 6px; font-size: 14px; font-family: inherit; cursor: pointer; border: 1px solid #111; }
+    .primary { background: #111; color: #fff; }
+    .secondary { background: #fff; color: #111; }
+    #msg { min-height: 20px; font-size: 13px; margin-top: 10px; }
+    #msg.ok { color: #0B6B2E; }
+    #msg.err { color: #b3261e; }
+    .off { opacity: .4; pointer-events: none; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo"></div>
+    <h1>DoorLabs<small>Türschild für diesen Termin</small></h1>
+  </header>
+  <main>
+    <div id="demo" class="demo" style="display:none">Vorschau ohne Outlook: Änderungen werden nur hier simuliert.</div>
+
+    <div class="card switch">
+      <div><strong>Fürs DoorLabs-Schild</strong><div class="hint" style="margin-top:2px">Während dieses Termins zeigt das Schild den Status unten.</div></div>
+      <input type="checkbox" id="enabled" checked>
+    </div>
+
+    <div id="settings">
+      <div class="card">
+        <label class="title" for="device">Gerät</label>
+        <input type="text" id="device" list="devices" maxlength="24" placeholder="z. B. Büro Julian">
+        <datalist id="devices"></datalist>
+      </div>
+
+      <div class="card">
+        <label class="title">Status</label>
+        <div class="grid" id="presets"></div>
+        <input type="text" id="customText" maxlength="24" placeholder="Eigener Text, z. B. Kundentermin" style="display:none;margin-top:8px">
+      </div>
+
+      <div class="card">
+        <label class="title">Farbe</label>
+        <div class="swatches" id="swatches"></div>
+        <div class="hint">Nur die 6 Farben, die das E-Paper (Spectra 6) anzeigen kann.</div>
+      </div>
+
+      <div class="card">
+        <label class="title">Vorschau</label>
+        <div class="preview-wrap"><div class="sign"><div class="screen" id="screen"><div class="st" id="pvStatus"></div><div class="dev" id="pvDevice"></div></div></div></div>
+        <div class="hint">Wird so ins Feld «Ort» geschrieben:</div>
+        <div class="code" id="pvCode"></div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="primary" id="apply">Übernehmen</button>
+      <button class="secondary" id="remove">Entfernen</button>
+    </div>
+    <div id="msg"></div>
+  </main>
+
+<script>
+(function () {
+  "use strict";
+
+  var COLORS = [
+    { id: "schwarz", name: "Schwarz", hex: "#111111", fg: "#ffffff" },
+    { id: "weiss",   name: "Weiss",   hex: "#ffffff", fg: "#111111" },
+    { id: "gelb",    name: "Gelb",    hex: "#F2C230", fg: "#111111" },
+    { id: "rot",     name: "Rot",     hex: "#D7263D", fg: "#ffffff" },
+    { id: "blau",    name: "Blau",    hex: "#1E6EDC", fg: "#ffffff" },
+    { id: "gruen",   name: "Grün",    hex: "#2E9E4F", fg: "#ffffff" }
+  ];
+  var PRESETS = [
+    { name: "Im Meeting",  color: "blau" },
+    { name: "Im Call",     color: "rot" },
+    { name: "Frei",        color: "gruen" },
+    { name: "Bald zurück", color: "gelb" },
+    { name: "Fokus",       color: "schwarz" },
+    { name: "Pause",       color: "weiss" },
+    { name: "Eigener Text", color: null }
+  ];
+  var TAG_RE = /\s*\[DoorLabs:[^\]]*\]/g;
+  var PROP_KEY = "doorlabs";
+
+  var state = { enabled: true, device: "", preset: "Im Meeting", custom: "", color: "blau" };
+  var item = null;         // Outlook-Termin oder Demo-Objekt
+  var customProps = null;  // Office.CustomProperties
+  var demoLocation = "Sitzungszimmer 2";
+
+  function $(id) { return document.getElementById(id); }
+  function colorById(id) { for (var i = 0; i < COLORS.length; i++) if (COLORS[i].id === id) return COLORS[i]; return COLORS[4]; }
+  function colorByName(n) { n = (n || "").toLowerCase().replace("ü", "ue"); for (var i = 0; i < COLORS.length; i++) if (COLORS[i].id === n || COLORS[i].name.toLowerCase() === n) return COLORS[i]; return null; }
+  function clean(s) { return (s || "").replace(/[\[\]|]/g, "").replace(/\s+/g, " ").trim().slice(0, 24); }
+  function statusText() { return state.preset === "Eigener Text" ? (clean(state.custom) || "Besetzt") : state.preset; }
+
+  function buildTag() {
+    var parts = [statusText(), colorById(state.color).name];
+    var d = clean(state.device);
+    if (d) parts.push(d);
+    return "[DoorLabs: " + parts.join(" | ") + "]";
+  }
+  function stripTag(loc) { return (loc || "").replace(TAG_RE, "").trim(); }
+  function withTag(loc) { var base = stripTag(loc); return (base ? base + " " : "") + buildTag(); }
+
+  function parseTag(loc) {
+    var m = /\[DoorLabs:([^\]]*)\]/.exec(loc || "");
+    if (!m) return null;
+    var p = m[1].split("|");
+    for (var i = 0; i < p.length; i++) p[i] = p[i].trim();
+    return { status: p[0] || "", color: p[1] || "", device: p[2] || "" };
+  }
+
+  function msg(text, cls) { var e = $("msg"); e.textContent = text; e.className = cls || ""; }
+
+  // ---------- Darstellung ----------
+  function renderPresets() {
+    var box = $("presets"); box.innerHTML = "";
+    PRESETS.forEach(function (p) {
+      var b = document.createElement("button");
+      b.type = "button";
+      if (p.name === state.preset) b.className = "active";
+      var dot = document.createElement("span"); dot.className = "dot";
+      dot.style.background = p.color ? colorById(p.color).hex : "transparent";
+      if (!p.color) dot.style.borderStyle = "dashed";
+      b.appendChild(dot); b.appendChild(document.createTextNode(p.name));
+      b.onclick = function () {
+        state.preset = p.name;
+        if (p.color) state.color = p.color;
+        render();
+        if (!p.color) $("customText").focus();
+      };
+      box.appendChild(b);
+    });
+    $("customText").style.display = state.preset === "Eigener Text" ? "block" : "none";
+  }
+  function renderSwatches() {
+    var box = $("swatches"); box.innerHTML = "";
+    COLORS.forEach(function (c) {
+      var b = document.createElement("button");
+      b.type = "button"; b.title = c.name; b.setAttribute("aria-label", c.name);
+      b.style.background = c.hex;
+      if (c.id === state.color) b.className = "active";
+      b.onclick = function () { state.color = c.id; render(); };
+      box.appendChild(b);
+    });
+  }
+  function renderPreview() {
+    var c = colorById(state.color);
+    var s = $("screen");
+    s.style.background = c.hex; s.style.color = c.fg;
+    s.style.border = c.id === "weiss" ? "1px solid #ddd" : "none";
+    $("pvStatus").textContent = statusText();
+    $("pvDevice").textContent = clean(state.device);
+    $("pvCode").textContent = buildTag();
+  }
+  function render() {
+    $("enabled").checked = state.enabled;
+    $("settings").className = state.enabled ? "" : "off";
+    $("device").value = state.device;
+    $("customText").value = state.custom;
+    renderPresets(); renderSwatches(); renderPreview();
+  }
+
+  // ---------- Gerätenamen merken (roamingSettings) ----------
+  function loadDevices() {
+    var list = [];
+    try { if (item && item.__office) list = Office.context.roamingSettings.get("devices") || []; }
+    catch (e) { list = []; }
+    var dl = $("devices"); dl.innerHTML = "";
+    list.forEach(function (n) { var o = document.createElement("option"); o.value = n; dl.appendChild(o); });
+    return list;
+  }
+  function rememberDevice(name) {
+    name = clean(name);
+    if (!name || !item || !item.__office) return;
+    try {
+      var rs = Office.context.roamingSettings;
+      var list = rs.get("devices") || [];
+      if (list.indexOf(name) === -1) { list.unshift(name); list = list.slice(0, 10); rs.set("devices", list); rs.saveAsync(); }
+    } catch (e) {}
+  }
+
+  // ---------- Termin lesen / schreiben ----------
+  function applyLoaded(data) {
+    if (!data) return;
+    if (typeof data.enabled === "boolean") state.enabled = data.enabled;
+    if (data.device != null) state.device = data.device;
+    var found = false;
+    for (var i = 0; i < PRESETS.length; i++) if (PRESETS[i].name === data.status) { state.preset = data.status; found = true; }
+    if (!found && data.status) { state.preset = "Eigener Text"; state.custom = data.status; }
+    var c = colorByName(data.color) || colorById(data.color);
+    if (c) state.color = c.id;
+  }
+
+  function loadFromItem(done) {
+    if (!item.__office) {
+      applyLoaded(parseTag(demoLocation));
+      return done();
+    }
+    item.loadCustomPropertiesAsync(function (r) {
+      if (r.status === Office.AsyncResultStatus.Succeeded) {
+        customProps = r.value;
+        var raw = customProps.get(PROP_KEY);
+        if (raw) { try { applyLoaded(JSON.parse(raw)); return done(); } catch (e) {} }
+      }
+      item.location.getAsync(function (lr) {
+        if (lr.status === Office.AsyncResultStatus.Succeeded) applyLoaded(parseTag(lr.value));
+        done();
+      });
+    });
+  }
+
+  function getLocation(cb) {
+    if (!item.__office) return cb(null, demoLocation);
+    item.location.getAsync(function (r) {
+      if (r.status === Office.AsyncResultStatus.Succeeded) cb(null, r.value || ""); else cb(r.error);
+    });
+  }
+  function setLocation(value, cb) {
+    if (!item.__office) { demoLocation = value; return cb(null); }
+    item.location.setAsync(value, function (r) { cb(r.status === Office.AsyncResultStatus.Succeeded ? null : r.error); });
+  }
+  function saveProps(data, cb) {
+    if (!item.__office || !customProps) return cb(null);
+    if (data) customProps.set(PROP_KEY, JSON.stringify(data)); else customProps.remove(PROP_KEY);
+    customProps.saveAsync(function (r) { cb(r.status === Office.AsyncResultStatus.Succeeded ? null : r.error); });
+  }
+
+  function onApply() {
+    state.device = $("device").value;
+    state.custom = $("customText").value;
+    getLocation(function (err, loc) {
+      if (err) return msg("Ort konnte nicht gelesen werden: " + err.message, "err");
+      var newLoc = state.enabled ? withTag(loc) : stripTag(loc);
+      setLocation(newLoc, function (err2) {
+        if (err2) return msg("Ort konnte nicht geschrieben werden: " + err2.message, "err");
+        var data = { enabled: state.enabled, device: clean(state.device), status: statusText(), color: state.color, v: 1 };
+        saveProps(data, function () {
+          rememberDevice(state.device);
+          msg(state.enabled ? "Gespeichert. Ort: «" + newLoc + "». Termin jetzt speichern/senden." : "DoorLabs für diesen Termin ausgeschaltet.", "ok");
+        });
+      });
+    });
+  }
+  function onRemove() {
+    getLocation(function (err, loc) {
+      if (err) return msg("Ort konnte nicht gelesen werden: " + err.message, "err");
+      setLocation(stripTag(loc), function (err2) {
+        if (err2) return msg("Ort konnte nicht geschrieben werden: " + err2.message, "err");
+        saveProps(null, function () {
+          state.enabled = false; render();
+          msg("DoorLabs-Code aus dem Termin entfernt.", "ok");
+        });
+      });
+    });
+  }
+
+  // ---------- Start ----------
+  function wire() {
+    $("enabled").onchange = function () { state.enabled = this.checked; render(); };
+    $("device").oninput = function () { state.device = this.value; renderPreview(); };
+    $("customText").oninput = function () { state.custom = this.value; renderPreview(); };
+    $("apply").onclick = onApply;
+    $("remove").onclick = onRemove;
+  }
+  function start(officeItem) {
+    item = officeItem || { __office: false };
+    if (!item.__office) $("demo").style.display = "block";
+    wire();
+    var devs = loadDevices();
+    if (!state.device && devs.length) state.device = devs[0];
+    loadFromItem(function () { render(); });
+    window.__doorlabs = { state: state, buildTag: buildTag, withTag: withTag, stripTag: stripTag, parseTag: parseTag, demoLocation: function () { return demoLocation; } };
+  }
+
+  function boot() {
+    if (typeof Office === "undefined" || !Office.onReady) return start(null);
+    Office.onReady(function (info) {
+      var it = info && info.host === Office.HostType.Outlook && Office.context.mailbox && Office.context.mailbox.item;
+      if (it) { it.__office = true; start(it); } else start(null);
+    });
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot); else boot();
+})();
+</script>
+</body>
+</html>
