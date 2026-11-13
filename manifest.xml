@@ -1,16 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- DoorLabs Outlook-Add-in (Test). Vor dem Hochladen: URLs zeigen auf kunzejulian9-maker/Add-ins-Test. -->
+<!-- DoorLabs Outlook-Add-in. Vorlage: `npm run build:addin` ersetzt https://kunzejulian9-maker.github.io/Add-ins-Test (Adresse, unter der die Dateien liegen, ohne / am Ende). -->
 <OfficeApp xmlns="http://schemas.microsoft.com/office/appforoffice/1.1"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:bt="http://schemas.microsoft.com/office/officeappbasictypes/1.0"
   xmlns:mailappor="http://schemas.microsoft.com/office/mailappversionoverrides/1.0"
   xsi:type="MailApp">
   <Id>2754276e-539f-4f2b-b4e4-e242dccf0b34</Id>
-  <Version>1.0.0.0</Version>
+  <Version>1.1.0.0</Version>
   <ProviderName>DoorLabs</ProviderName>
-  <DefaultLocale>de-CH</DefaultLocale>
-  <DisplayName DefaultValue="DoorLabs"/>
-  <Description DefaultValue="Termin fürs DoorLabs-Türschild markieren: Status und Farbe wählen."/>
+  <DefaultLocale>en-US</DefaultLocale>
+  <DisplayName DefaultValue="DoorLabs">
+    <Override Locale="de-DE" Value="DoorLabs"/>
+    <Override Locale="fr-FR" Value="DoorLabs"/>
+    <Override Locale="it-IT" Value="DoorLabs"/>
+  </DisplayName>
+  <Description DefaultValue="Mark an appointment for the DoorLabs door sign: choose status and colour.">
+    <Override Locale="de-DE" Value="Termin fürs DoorLabs-Türschild markieren: Status und Farbe wählen."/>
+    <Override Locale="fr-FR" Value="Marquer un rendez-vous pour la plaque de porte DoorLabs : choisir statut et couleur."/>
+    <Override Locale="it-IT" Value="Contrassegna un appuntamento per la targa DoorLabs: scegli stato e colore."/>
+  </Description>
   <IconUrl DefaultValue="https://kunzejulian9-maker.github.io/Add-ins-Test/assets/icon-64.png"/>
   <HighResolutionIconUrl DefaultValue="https://kunzejulian9-maker.github.io/Add-ins-Test/assets/icon-128.png"/>
   <SupportUrl DefaultValue="https://doorlabs.ch"/>
@@ -85,10 +93,18 @@
       </bt:Urls>
       <bt:ShortStrings>
         <bt:String id="Group.Label" DefaultValue="DoorLabs"/>
-        <bt:String id="Button.Label" DefaultValue="DoorLabs-Schild"/>
+        <bt:String id="Button.Label" DefaultValue="DoorLabs sign">
+          <bt:Override Locale="de-DE" Value="DoorLabs-Schild"/>
+          <bt:Override Locale="fr-FR" Value="Plaque DoorLabs"/>
+          <bt:Override Locale="it-IT" Value="Targa DoorLabs"/>
+        </bt:String>
       </bt:ShortStrings>
       <bt:LongStrings>
-        <bt:String id="Button.Tooltip" DefaultValue="Status und Farbe für das DoorLabs-Türschild während dieses Termins wählen."/>
+        <bt:String id="Button.Tooltip" DefaultValue="Choose status and colour for the DoorLabs door sign during this appointment.">
+          <bt:Override Locale="de-DE" Value="Status und Farbe für das DoorLabs-Türschild während dieses Termins wählen."/>
+          <bt:Override Locale="fr-FR" Value="Choisir statut et couleur de la plaque DoorLabs pendant ce rendez-vous."/>
+          <bt:Override Locale="it-IT" Value="Scegli stato e colore della targa DoorLabs durante questo appuntamento."/>
+        </bt:String>
       </bt:LongStrings>
     </Resources>
   </VersionOverrides>
